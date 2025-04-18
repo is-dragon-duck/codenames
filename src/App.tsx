@@ -4,7 +4,7 @@ import { generateBoard } from "./lib/generateBoard";
 import { Board, PlayerRole } from "./types";
 
 function App() {
-  const [board, setBoard] = useState<Board>(generateBoard());
+  const [board, _setBoard] = useState<Board>(generateBoard());
   const [playerRole, setPlayerRole] = useState<PlayerRole>("spymaster");
 
   return (
