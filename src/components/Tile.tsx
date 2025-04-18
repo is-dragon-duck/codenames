@@ -1,32 +1,22 @@
-// src/components/Tile.tsx
 import { Tile, PlayerRole } from "../types";
 
 type TileProps = {
   tile: Tile;
   playerRole: PlayerRole;
+  onClick: () => void;
 };
 
-export default function TileComponent({ tile, playerRole }: TileProps) {
+export default function TileComponent({ tile, playerRole, onClick }: TileProps) {
   const showTeamColor = playerRole === "spymaster" || tile.revealed;
 
-  let background = "bg-gray-300"; // fallback
+  let background = "bg-gray-300";
   if (showTeamColor) {
-    switch (tile.team) {
-      case "red":
-        background = "bg-red-400";
-        break;
-      case "blue":
-        background = "bg-blue-400";
-        break;
-      case "white":
-        background = "bg-gray-100";
-        break;
-      case "black":
-        background = "bg-black text-white";
-        break;
-    }
+    if (tile.team === "red") background = "bg-red-400";
+    else if (tile.team === "blue") background = "bg-blue-400";
+    else if (tile.team === "white") background = "bg-gray-100";
+    else if (tile.team === "black") background = "bg-black text-white";
   }
-  
+
   const showWord = !tile.revealed || tile.peeked;
 
   const numberToShow =
@@ -35,7 +25,10 @@ export default function TileComponent({ tile, playerRole }: TileProps) {
     : null;
 
   return (
-    <div className={`border p-2 flex flex-col justify-center items-center w-[90px] h-[60px] ${background}`}>
+    <div
+      className={`border p-2 flex flex-col justify-center items-center w-[90px] h-[60px] cursor-pointer ${background}`}
+      onClick={onClick}
+    >
       {showWord && <div className="text-center">{tile.word}</div>}
       {tile.revealed && numberToShow !== null && (
         <div className="text-sm mt-1">{numberToShow}</div>

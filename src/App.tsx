@@ -4,8 +4,22 @@ import { generateBoard } from "./lib/generateBoard";
 import { Board, PlayerRole } from "./types";
 
 function App() {
-  const [board, _setBoard] = useState<Board>(generateBoard());
+  const [board, setBoard] = useState<Board>(generateBoard());
   const [playerRole, setPlayerRole] = useState<PlayerRole>("spymaster");
+
+  const handleTileClick = (row: number, col: number) => {
+    if (playerRole !== "operative") return; // Only operative can click for now
+
+    setBoard(prevBoard => {
+      const newBoard = prevBoard.map(row => row.map(tile => ({ ...tile }))); // Deep copy
+      const tile = newBoard[row][col];
+      if (!tile.revealed) {
+        tile.revealed = true;
+        tile.revealedBy = "operative";
+      }
+      return newBoard;
+    });
+  };
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100">
@@ -18,7 +32,7 @@ function App() {
       >
         Switch Role ({playerRole})
       </button>
-      <BoardComponent board={board} playerRole={playerRole} />
+      <BoardComponent board={board} playerRole={playerRole} onTileClick={handleTileClick} />
     </div>
   );
 }
