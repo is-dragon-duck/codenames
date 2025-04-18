@@ -38,6 +38,7 @@ export function generateBoard(): Board {
     revealed: false,
     revealedBy: null,
     peeked: false,
+    lockedPeek: false,
     adjacentReds: 0,   // we'll compute these next
     adjacentBlues: 0,
   }));
