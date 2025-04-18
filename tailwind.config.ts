@@ -1,3 +1,4 @@
+import colors from "tailwindcss/colors";
 import type { Config } from "tailwindcss";
 
 const config: Config = {
@@ -6,7 +7,14 @@ const config: Config = {
     "./src/**/*.{ts,tsx}",
   ],
   theme: {
-    extend: {},
+    extend: {
+      colors: {
+        red: colors.red,
+        blue: colors.blue,
+        gray: colors.gray,
+        black: colors.black,
+      },
+    },
   },
   plugins: [],
 };
