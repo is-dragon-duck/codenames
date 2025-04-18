@@ -9,6 +9,7 @@ export type Tile = {
   revealed: boolean;
   revealedBy: RevealedBy;
   peeked: boolean;
+  lockedPeek: boolean;
   adjacentReds: number;
   adjacentBlues: number;
 };

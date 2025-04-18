@@ -8,15 +8,48 @@ function App() {
   const [playerRole, setPlayerRole] = useState<PlayerRole>("spymaster");
 
   const handleTileClick = (row: number, col: number) => {
-    if (playerRole !== "operative") return; // Only operative can click for now
-
     setBoard(prevBoard => {
-      const newBoard = prevBoard.map(row => row.map(tile => ({ ...tile }))); // Deep copy
+      const newBoard = prevBoard.map(row => row.map(tile => ({ ...tile })));
       const tile = newBoard[row][col];
+  
       if (!tile.revealed) {
-        tile.revealed = true;
-        tile.revealedBy = "operative";
+        if (playerRole === "operative") {
+          tile.revealed = true;
+          tile.revealedBy = "operative";
+        }
+      } else if (!tile.peeked) {
+        tile.peeked = true;
+        tile.lockedPeek = false;
+  
+        setTimeout(() => {
+          setBoard(currentBoard => {
+            const updated = currentBoard.map(row => row.map(t => ({ ...t })));
+            const t = updated[row][col];
+            if (t.peeked && !t.lockedPeek) {
+              t.peeked = false;
+            }
+            return updated;
+          });
+        }, 3000);
+      } else if (tile.peeked && tile.lockedPeek) {
+        tile.peeked = false;
+        tile.lockedPeek = false;
       }
+  
+      return newBoard;
+    });
+  };
+  
+  const handleTileDoubleClick = (row: number, col: number) => {
+    setBoard(prevBoard => {
+      const newBoard = prevBoard.map(row => row.map(tile => ({ ...tile })));
+      const tile = newBoard[row][col];
+  
+      if (tile.revealed) {
+        tile.peeked = true;
+        tile.lockedPeek = true;
+      }
+  
       return newBoard;
     });
   };
@@ -32,7 +65,7 @@ function App() {
       >
         Switch Role ({playerRole})
       </button>
-      <BoardComponent board={board} playerRole={playerRole} onTileClick={handleTileClick} />
+      <BoardComponent board={board} playerRole={playerRole} onTileClick={handleTileClick} onTileDoubleClick={handleTileDoubleClick} />
     </div>
   );
 }

@@ -4,9 +4,10 @@ type TileProps = {
   tile: Tile;
   playerRole: PlayerRole;
   onClick: () => void;
+  onDoubleClick: () => void;
 };
 
-export default function TileComponent({ tile, playerRole, onClick }: TileProps) {
+export default function TileComponent({ tile, playerRole, onClick, onDoubleClick }: TileProps) {
   const showTeamColor = playerRole === "spymaster" || tile.revealed;
 
   let background = "bg-gray-300";
@@ -28,6 +29,7 @@ export default function TileComponent({ tile, playerRole, onClick }: TileProps) 
     <div
       className={`border p-2 flex flex-col justify-center items-center w-[90px] h-[60px] cursor-pointer ${background}`}
       onClick={onClick}
+      onDoubleClick={onDoubleClick}
     >
       {showWord && <div className="text-center">{tile.word}</div>}
       {tile.revealed && numberToShow !== null && (
