@@ -59,11 +59,22 @@ function App() {
     <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 p-4">
       <h1 className="text-2xl font-bold my-2">Mines Variant</h1>
 
+      {/* New Game Button */}
+      <button
+        className="mb-4 px-4 py-2 bg-green-500 text-white rounded"
+        onClick={() => {
+          setBoard(generateBoard());
+          setCurrentTurn("spymaster"); // we'll add this state soon
+        }}
+      >
+        New Game
+      </button>
+
       {/* Player Role Display */}
       <div className="text-lg font-semibold mb-2">
         {playerRole === "spymaster" ? "Spymaster View" : "Operative View"}
       </div>
-      
+
       <div className="text-md mb-2">
         {currentTurn === "spymaster" ? "Spymaster's Turn" : "Operative's Turn"}
       </div>
@@ -78,16 +89,15 @@ function App() {
         Switch to {playerRole === "spymaster" ? "Operative" : "Spymaster"}
       </button>
 
-      {/* New Game Button */}
-      <button
-        className="mb-4 px-4 py-2 bg-green-500 text-white rounded"
-        onClick={() => {
-          setBoard(generateBoard());
-          setCurrentTurn("spymaster"); // we'll add this state soon
-        }}
-      >
-        New Game
-      </button>
+      {/* Show Submit button during Spymaster turn */}
+      {currentTurn === "spymaster" && (
+        <button
+          className="mb-4 px-4 py-2 bg-red-500 text-white rounded"
+          onClick={() => setCurrentTurn("operative")}
+        >
+          Submit Clue (End Turn)
+        </button>
+      )}
 
       {/* Board goes here */}
       <BoardComponent board={board} playerRole={playerRole} onTileClick={handleTileClick} onTileDoubleClick={handleTileDoubleClick} />
