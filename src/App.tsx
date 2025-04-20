@@ -7,40 +7,75 @@ function App() {
   const [board, setBoard] = useState<Board>(generateBoard());
   const [playerRole, setPlayerRole] = useState<PlayerRole>("spymaster");
   const [currentTurn, setCurrentTurn] = useState<PlayerRole>("spymaster");
+  const [highlighted, setHighlighted] = useState<{ row: number; col: number } | null>(null);
 
+  function revealRandomBlue(board: Board) {
+    const unrevealedBlues = [];
+    for (let r = 0; r < board.length; r++) {
+      for (let c = 0; c < board[r].length; c++) {
+        const tile = board[r][c];
+        if (tile.team === "blue" && !tile.revealed) {
+          unrevealedBlues.push({ row: r, col: c });
+        }
+      }
+    }
+  
+    if (unrevealedBlues.length > 0) {
+      const choice = unrevealedBlues[Math.floor(Math.random() * unrevealedBlues.length)];
+      board[choice.row][choice.col].revealed = true;
+      board[choice.row][choice.col].revealedBy = "ai";
+    }
+  }
+  
   const handleTileClick = (row: number, col: number) => {
     setBoard(prevBoard => {
       const newBoard = prevBoard.map(row => row.map(tile => ({ ...tile })));
       const tile = newBoard[row][col];
   
+      if (currentTurn !== "operative" || playerRole !== "operative") {
+        // Still allow peeking during spymaster turn
+        if (tile.revealed) {
+          // Toggle peek
+          tile.peeked = !tile.peeked;
+          setHighlighted(null);
+        }
+        return newBoard;
+      }
+  
       if (!tile.revealed) {
-        if (playerRole === "operative") {
+        if (highlighted && highlighted.row === row && highlighted.col === col) {
+          // Confirm guess (reveal)
           tile.revealed = true;
           tile.revealedBy = "operative";
-        }
-      } else if (!tile.peeked) {
-        tile.peeked = true;
-        tile.lockedPeek = false;
+          tile.peeked = false;
+          tile.lockedPeek = false;
+          setHighlighted(null);
   
-        setTimeout(() => {
-          setBoard(currentBoard => {
-            const updated = currentBoard.map(row => row.map(t => ({ ...t })));
-            const t = updated[row][col];
-            if (t.peeked && !t.lockedPeek) {
-              t.peeked = false;
-            }
-            return updated;
-          });
-        }, 3000);
-      } else if (tile.peeked && tile.lockedPeek) {
-        tile.peeked = false;
-        tile.lockedPeek = false;
+          if (tile.team === "red") {
+            // Correct guess, continue turn
+            // No action needed
+          } else if (tile.team === "blue" || tile.team === "white") {
+            // Mistake, end turn after this click
+            setCurrentTurn("spymaster");
+            revealRandomBlue(newBoard);
+          } else if (tile.team === "black") {
+            // Assassin hit - game over logic (we'll expand later)
+            alert("Game Over! You hit the assassin!");
+            setCurrentTurn("spymaster"); // Freeze game basically for now
+          }
+        } else {
+          // Highlight this tile
+          setHighlighted({ row, col });
+        }
+      } else {
+        // Already revealed tile → allow peek
+        tile.peeked = !tile.peeked;
       }
   
       return newBoard;
     });
   };
-  
+    
   const handleTileDoubleClick = (row: number, col: number) => {
     setBoard(prevBoard => {
       const newBoard = prevBoard.map(row => row.map(tile => ({ ...tile })));
@@ -100,7 +135,7 @@ function App() {
       )}
 
       {/* Board goes here */}
-      <BoardComponent board={board} playerRole={playerRole} onTileClick={handleTileClick} onTileDoubleClick={handleTileDoubleClick} />
+      <BoardComponent board={board} playerRole={playerRole} onTileClick={handleTileClick} onTileDoubleClick={handleTileDoubleClick} highlighted={highlighted} />
     </div>
 
   );
