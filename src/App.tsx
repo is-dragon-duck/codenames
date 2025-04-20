@@ -8,6 +8,9 @@ function App() {
   const [playerRole, setPlayerRole] = useState<PlayerRole>("spymaster");
   const [currentTurn, setCurrentTurn] = useState<PlayerRole>("spymaster");
   const [highlighted, setHighlighted] = useState<{ row: number; col: number } | null>(null);
+  const [clueWord, setClueWord] = useState<string>("");
+  const [clueNumber, setClueNumber] = useState<string>("0"); // can be "0", "∞", "1"..."9"
+
 
   function revealRandomBlue(board: Board) {
     const unrevealedBlues = [];
@@ -126,12 +129,45 @@ function App() {
 
       {/* Show Submit button during Spymaster turn */}
       {currentTurn === "spymaster" && (
-        <button
-          className="mb-4 px-4 py-2 bg-red-500 text-white rounded"
-          onClick={() => setCurrentTurn("operative")}
-        >
-          Submit Clue (End Turn)
-        </button>
+        <div className="flex flex-col items-center mb-4 gap-2">
+          <div className="flex items-center gap-2">
+            <input
+              type="text"
+              placeholder="Enter clue"
+              value={clueWord}
+              onChange={e => setClueWord(e.target.value)}
+              className="px-2 py-1 rounded border"
+            />
+            <select
+              value={clueNumber}
+              onChange={e => setClueNumber(e.target.value)}
+              className="px-2 py-1 rounded border"
+            >
+              <option value="0">0</option>
+              <option value="∞">∞</option>
+              {[...Array(9)].map((_, i) => (
+                <option key={i + 1} value={(i + 1).toString()}>
+                  {i + 1}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Keep the same Submit button for now */}
+          <button
+            className="px-4 py-2 bg-red-500 text-white rounded"
+            onClick={() => setCurrentTurn("operative")}
+          >
+            Submit Clue (End Turn)
+          </button>
+        </div>
+      )}
+
+      {currentTurn === "operative" && clueWord && (
+        <div className="mb-4 text-center">
+          <div className="text-lg font-bold">Clue:</div>
+          <div className="text-xl">{clueWord} ({clueNumber})</div>
+        </div>
       )}
 
       {/* Board goes here */}
