@@ -5,10 +5,9 @@ type TileProps = {
   playerRole: PlayerRole;
   onClick: () => void;
   onDoubleClick: () => void;
-  isHighlighted: boolean;
 };
 
-export default function TileComponent({ tile, playerRole, onClick, onDoubleClick, isHighlighted }: TileProps) {
+export default function TileComponent({ tile, playerRole, onClick, onDoubleClick }: TileProps) {
   const showTeamColor = playerRole === "spymaster" || tile.revealed;
 
   let background = "bg-gray-300";
@@ -22,15 +21,15 @@ export default function TileComponent({ tile, playerRole, onClick, onDoubleClick
   const showWord = !tile.revealed || tile.peeked;
 
   const numberToShow =
-    tile.revealedBy === "operative" ? tile.adjacentReds
-    : tile.revealedBy === "ai" ? tile.adjacentBlues
-    : null;
+    tile.revealedBy === "operative" ? tile.adjacentReds :
+    tile.revealedBy === "ai" ? tile.adjacentBlues :
+    null;
 
   return (
     <div
       className={`border p-2 flex flex-col justify-center items-center w-[90px] h-[60px] cursor-pointer ${background} ${
-        isHighlighted ? "ring-4 ring-yellow-400" : ""
-      }`}
+        tile.markedBySpymaster ? "ring-4 ring-green-400" : ""
+      } ${tile.highlightedByOperative ? "ring-4 ring-yellow-400" : ""}`}
       onClick={onClick}
       onDoubleClick={onDoubleClick}
     >

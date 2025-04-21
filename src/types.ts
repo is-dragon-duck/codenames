@@ -12,6 +12,8 @@ export type Tile = {
   lockedPeek: boolean;
   adjacentReds: number;
   adjacentBlues: number;
+  markedBySpymaster: boolean;
+  highlightedByOperative: boolean;
 };
 
 export type Board = Tile[][];

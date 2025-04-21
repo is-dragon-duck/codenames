@@ -39,8 +39,10 @@ export function generateBoard(): Board {
     revealedBy: null,
     peeked: false,
     lockedPeek: false,
-    adjacentReds: 0,   // we'll compute these next
+    adjacentReds: 0,
     adjacentBlues: 0,
+    highlightedByOperative: false,
+    markedBySpymaster: false,
   }));
 
   // Reshape into 6x5 board

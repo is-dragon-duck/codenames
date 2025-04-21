@@ -6,10 +6,9 @@ type BoardProps = {
   playerRole: PlayerRole;
   onTileClick: (row: number, col: number) => void;
   onTileDoubleClick: (row: number, col: number) => void;
-  highlighted: { row: number; col: number } | null;
 };
 
-export default function BoardComponent({ board, playerRole, onTileClick, onTileDoubleClick, highlighted }: BoardProps) {
+export default function BoardComponent({ board, playerRole, onTileClick, onTileDoubleClick }: BoardProps) {
   return (
     <div className="grid grid-cols-6 gap-2 p-4">
       {board.map((row, rowIdx) =>
@@ -20,7 +19,6 @@ export default function BoardComponent({ board, playerRole, onTileClick, onTileD
             playerRole={playerRole}
             onClick={() => onTileClick(rowIdx, colIdx)}
             onDoubleClick={() => onTileDoubleClick(rowIdx, colIdx)}
-            isHighlighted={highlighted?.row === rowIdx && highlighted?.col === colIdx}
           />
         ))
       )}
