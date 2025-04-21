@@ -19,3 +19,13 @@ export type Tile = {
 export type Board = Tile[][];
 
 export type PlayerRole = "spymaster" | "operative";
+
+export type LogEntry = {
+  clueWord: string;
+  clueNumber: string;
+  markedWords: string[];
+  operativeGuesses: {
+    word: string;
+    team: Team;
+  }[];
+};

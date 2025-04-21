@@ -2,15 +2,20 @@ import { useState } from "react";
 import { useEffect } from "react";
 import BoardComponent from "./components/Board";
 import { generateBoard } from "./lib/generateBoard";
-import { Board, PlayerRole } from "./types";
+import { Board, PlayerRole, LogEntry } from "./types";
+import { doAITurn, checkVictoryOrDefeat } from "./logic/ai";
 
 function App() {
   const [board, setBoard] = useState<Board>(generateBoard());
   const [playerRole, setPlayerRole] = useState<PlayerRole>("spymaster");
   const [currentTurn, setCurrentTurn] = useState<PlayerRole>("spymaster");
-  // const [highlighted, setHighlighted] = useState<{ row: number; col: number } | null>(null);
   const [clueWord, setClueWord] = useState<string>("");
   const [clueNumber, setClueNumber] = useState<string>("0"); // can be "0", "∞", "1"..."9"
+  const [gameLog, setGameLog] = useState<LogEntry[]>([]);
+  const [gameOver, setGameOver] = useState(false);
+  const [gameResult, setGameResult] = useState<"victory" | "defeat" | null>(null);
+  
+  const lastLog = gameLog[gameLog.length - 1];
 
   const markedCount = countMarkedTiles(board);
   const clueOptions = markedCount > 0
@@ -32,25 +37,7 @@ function App() {
       setClueNumber(markedCount > 0 ? markedCount.toString() : "1");
     }
   }, [board]);
-
-  function revealRandomBlue(board: Board) {
-    const unrevealedBlues = [];
-    for (let r = 0; r < board.length; r++) {
-      for (let c = 0; c < board[r].length; c++) {
-        const tile = board[r][c];
-        if (tile.team === "blue" && !tile.revealed) {
-          unrevealedBlues.push({ row: r, col: c });
-        }
-      }
-    }
   
-    if (unrevealedBlues.length > 0) {
-      const choice = unrevealedBlues[Math.floor(Math.random() * unrevealedBlues.length)];
-      board[choice.row][choice.col].revealed = true;
-      board[choice.row][choice.col].revealedBy = "ai";
-    }
-  }
-
   function countMarkedTiles(board: Board) {
     let count = 0;
     for (const row of board) {
@@ -62,6 +49,10 @@ function App() {
   }  
   
   function handleTileClick(row: number, col: number) {
+    if (gameOver) {
+      return; // No actions after game ends
+    }
+    
     setBoard(prevBoard => {
       const newBoard = prevBoard.map(row => row.map(tile => ({ ...tile })));
       const tile = newBoard[row][col];
@@ -97,7 +88,31 @@ function App() {
           tile.lockedPeek = false;
           tile.highlightedByOperative = false;
 
+          const result = checkVictoryOrDefeat(newBoard);
+          if (result) {
+            setGameOver(true);
+            setGameResult(result);
+            return newBoard; // stop further processing
+          }
+
+          setGameLog(prev => {
+            const newLog = [...prev];
+            if (newLog.length > 0) {
+              const lastEntry = newLog[newLog.length - 1];
+              lastEntry.operativeGuesses.push({ word: tile.word, team: tile.team });
+            }
+            return newLog;
+          });
+
           newBoard.forEach(row => row.forEach(t => t.highlightedByOperative = false));
+
+          if (tile.team === "black") {
+            setGameOver(true);
+            setGameResult("defeat");
+            return newBoard;
+          }
+
+          checkVictoryOrDefeat(newBoard);
     
           if (tile.team === "red") {
             // Correct guess → keep playing
@@ -105,10 +120,6 @@ function App() {
           } else if (tile.team === "blue" || tile.team === "white") {
             // Mistake → end turn
             endOperativeTurn(newBoard);
-          } else if (tile.team === "black") {
-            // Assassin hit → end game
-            alert("Game Over! You hit the assassin!");
-            return newBoard;
           }
         } else {
           // Highlight this tile
@@ -147,22 +158,42 @@ function App() {
   };
 
   function endOperativeTurn(board: Board) {
-    revealRandomBlue(board);
+    doAITurn(board);
+
+    const result = checkVictoryOrDefeat(board);
+    if (result) {
+      setGameOver(true);
+      setGameResult(result);
+    }
+
     setBoard(board);
     setCurrentTurn("spymaster");
   }
+
+  function startNewGame() {
+    setBoard(generateBoard());
+    setCurrentTurn("spymaster");
+    setClueWord("");
+    setClueNumber("0");
+    setGameLog([]);
+    setGameOver(false);
+    setGameResult(null);
+  }  
     
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 p-4">
       <h1 className="text-2xl font-bold my-2">Mines Variant</h1>
 
+      {gameOver && (
+        <div className="text-center text-3xl font-bold p-6">
+          {gameResult === "victory" ? "🎉 Victory! You found all your words!" : "💀 Defeat! Better luck next time!"}
+        </div>
+      )}
+
       {/* New Game Button */}
       <button
-        className="mb-4 px-4 py-2 bg-green-500 text-white rounded"
-        onClick={() => {
-          setBoard(generateBoard());
-          setCurrentTurn("spymaster"); // we'll add this state soon
-        }}
+        className="mt-4 px-4 py-2 bg-blue-500 text-white rounded"
+        onClick={startNewGame}
       >
         New Game
       </button>
@@ -220,7 +251,26 @@ function App() {
                 }
               }
             
+              // Snapshot marked words
+              const markedWords = board.flatMap(row =>
+                row.filter(tile => tile.markedBySpymaster).map(tile => tile.word)
+              );
+            
+              // Add new LogEntry
+              setGameLog(prev => [
+                ...prev,
+                {
+                  clueWord,
+                  clueNumber,
+                  markedWords,
+                  operativeGuesses: []
+                }
+              ]);
+            
+              // Clear marked tiles
               setBoard(prevBoard => prevBoard.map(row => row.map(tile => ({ ...tile, markedBySpymaster: false }))));
+            
+              // Switch turn
               setCurrentTurn("operative");
             }}
           >
@@ -229,10 +279,10 @@ function App() {
         </div>
       )}
 
-      {currentTurn === "operative" && clueWord && (
+      {currentTurn === "operative" && lastLog && (
         <div className="mb-4 text-center">
           <div className="text-lg font-bold">Clue:</div>
-          <div className="text-xl">{clueWord} ({clueNumber})</div>
+          <div className="text-xl">{lastLog.clueWord} ({lastLog.clueNumber})</div>
         </div>
       )}
 
