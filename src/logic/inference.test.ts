@@ -1,10 +1,15 @@
 import { describe, it, expect } from "vitest";
 import { inferProvableBlueTiles } from "./inference";
 
-import type { InferenceTile } from "./inference";
+import type { InferenceTile, GlobalCounts } from "./inference";
 
 describe("inferProvableBlueTiles", () => {
   it("finds a simple provable blue", () => {
+    const globalCounts: GlobalCounts = {
+        red: 1,
+        blue: 2,
+        other: 1
+      };
     const board: InferenceTile[][] = [
       [
         { possibleColors: ["red"], redAdjacencies: null, blueAdjacencies: 2 },
@@ -16,7 +21,7 @@ describe("inferProvableBlueTiles", () => {
       ],
     ];
 
-    const result = inferProvableBlueTiles(board);
+    const result = inferProvableBlueTiles(board, globalCounts);
 
     console.log(result);
 
