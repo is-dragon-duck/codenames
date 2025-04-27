@@ -59,7 +59,7 @@ function revealRandomBlue(board: Board) {
         let provableBlues1 = inferProvableBlueTiles(toInferenceBoard(board), globalCounts);
         for (const [r, c] of provableBlues1) {
             const tile = board[r][c];
-            if (!tile.revealed) {
+            if (!tile.revealed && tile.team == "blue") {
                 tile.revealed = true;
                 tile.revealedBy = "ai";
                 changed = true;
@@ -87,7 +87,7 @@ function revealRandomBlue(board: Board) {
         let provableBlues2 = inferProvableBlueTiles(toInferenceBoard(board), globalCounts);
         for (const [r, c] of provableBlues2) {
             const tile = board[r][c];
-            if (!tile.revealed) {
+            if (!tile.revealed && tile.team == "blue") {
                 tile.revealed = true;
                 tile.revealedBy = "ai";
                 changed = true;

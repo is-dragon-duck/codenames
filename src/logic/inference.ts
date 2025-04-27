@@ -242,7 +242,7 @@ function canAssignAs(
     if (violations === 0) return true;
   
     // Step 3: Hill climb
-    for (let step = 0; step < 1000; step++) {
+    for (let step = 0; step < 3000; step++) {
       const violators = findViolatorTiles(workingBoard, originalBoard);
   
       if (violators.length === 0) return true;
