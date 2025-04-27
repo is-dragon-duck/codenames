@@ -4,6 +4,7 @@ import BoardComponent from "./components/Board";
 import { generateBoard } from "./lib/generateBoard";
 import { Board, PlayerRole, LogEntry } from "./types";
 import { doAITurn, checkVictoryOrDefeat } from "./logic/ai";
+// import { useWebSocket } from "./hooks/useWebSocket";
 
 function App() {
   const [board, setBoard] = useState<Board>(generateBoard());
@@ -21,7 +22,16 @@ function App() {
   const clueOptions = markedCount > 0
     ? ["0", "∞", markedCount.toString()]
     : ["0", "∞", 1];
-  
+  const { red, blue } = countRemainingTiles(board);
+    
+
+  // const { send } = useWebSocket(gameId, (incomingPayload) => {
+  //   // incomingPayload is your new board state or full game state
+  //   setBoard(incomingPayload.board);
+  //   setCurrentTurn(incomingPayload.currentTurn);
+  //   // any other things you need
+  // });
+    
   useEffect(() => {
     const markedCount = countMarkedTiles(board);
     const validOptions = markedCount > 0
@@ -37,6 +47,22 @@ function App() {
       setClueNumber(markedCount > 0 ? markedCount.toString() : "1");
     }
   }, [board]);
+
+  function countRemainingTiles(board: Board) {
+    let red = 0;
+    let blue = 0;
+  
+    for (const row of board) {
+      for (const tile of row) {
+        if (!tile.revealed) {
+          if (tile.team === "red") red++;
+          if (tile.team === "blue") blue++;
+        }
+      }
+    }
+  
+    return { red, blue };
+  }
   
   function countMarkedTiles(board: Board) {
     let count = 0;
@@ -81,6 +107,7 @@ function App() {
       } else if (currentTurn === "operative" && playerRole === "operative") {
 
         if (tile.highlightedByOperative) {
+          // TODO: somewhere in here is what we need to change, and probably need to do some refactoring
           // Confirm guess
           tile.revealed = true;
           tile.revealedBy = "operative";
@@ -217,6 +244,18 @@ function App() {
         Switch to {playerRole === "spymaster" ? "Operative" : "Spymaster"}
       </button>
 
+      {currentTurn === "operative" && playerRole === "operative" && (
+        <div className="flex justify-center mt-4">
+          <button
+            className="px-6 py-3 bg-red-500 hover:bg-red-600 active:bg-red-700 text-white text-lg font-semibold rounded-2xl shadow-md transition-all duration-200"
+            onClick={() => endOperativeTurn(board)}
+          >
+            Pass Turn
+          </button>
+        </div>
+      )}
+
+
       {/* Show Submit button during Spymaster turn */}
       {currentTurn === "spymaster" && (
         <div className="flex flex-col items-center mb-4 gap-2">
@@ -285,6 +324,11 @@ function App() {
           <div className="text-xl">{lastLog.clueWord} ({lastLog.clueNumber})</div>
         </div>
       )}
+
+      <div className="mt-2 text-center">
+        <div>Red tiles left: {red}</div>
+        <div>Blue tiles left: {blue}</div>
+      </div>
 
       {/* Board goes here */}
       <BoardComponent board={board} playerRole={playerRole} onTileClick={handleTileClick} onTileDoubleClick={handleTileDoubleClick} />

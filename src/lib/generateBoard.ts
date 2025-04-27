@@ -1,14 +1,6 @@
 // src/lib/generateBoard.ts
 import { Board, Tile, Team } from "../types";
-
-// You can later replace this with a bigger word bank
-const WORD_BANK = [
-  "Sun", "Moon", "Star", "Sky", "Tree", "Rock", "River", "Ocean",
-  "Fire", "Ice", "Wind", "Cloud", "Wolf", "Bear", "Eagle", "Fox",
-  "Gold", "Silver", "Knight", "Sword", "Shield", "Dragon", "Castle", "Wizard",
-  "Bridge", "Mountain", "Valley", "Forest", "Desert", "Island", "Ship", "Storm",
-  "Meadow", "Jungle", "Cave", "Meteor", "Comet", "Canyon", "Dune", "Harbor"
-];
+import wordbankRaw from '../assets/core_words.txt?raw';
 
 function shuffle<T>(array: T[]): T[] {
   const arr = [...array];
@@ -78,3 +70,8 @@ export function generateBoard(): Board {
 
   return board;
 }
+
+export const WORD_BANK: string[] = wordbankRaw
+  .split('\n')
+  .map(word => word.trim())
+  .filter(word => word.length > 0);
